@@ -1,4 +1,4 @@
-# Blog
+# Sitebash
 
 Static site generator written in Bash.
 
