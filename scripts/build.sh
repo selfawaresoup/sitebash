@@ -9,8 +9,6 @@ BASE_DIR=$(pwd)
 CONTENT_DIR="$BASE_DIR/content"
 OUTPUT_DIR="$BASE_DIR/output"
 
-BASE_TEMPLATE=$(cat $BASE_DIR/templates/main.html)
-
 echo "Generating posts index …"
 INDEX=""
 # compile list of posts and make an index
@@ -58,8 +56,21 @@ for FILE in $(find $CONTENT_DIR -type f); do
 		  source $ENV_FILE
 		fi
 
+		TEMPLATE=$(cat $BASE_DIR/$TEMPLATE)
+
 		CONTENT=$(cat $CONTENT_DIR$FILE)
-		CONTENT=${BASE_TEMPLATE/"@MAIN@"/${CONTENT}}
+		CONTENT=${TEMPLATE/"@MAIN@"/${CONTENT}}
+
+		INCLUDES_REGEX="@INCLUDE\((.*)\)@"
+		for i in $CONTENT; do
+			if [[ $i =~ $INCLUDES_REGEX ]]; then
+				INCLUDE_MARKER="${BASH_REMATCH[0]}"
+				INCLUDE_FILE="$BASE_DIR/${BASH_REMATCH[1]}"
+				INCLUDE=$(cat $INCLUDE_FILE)
+				CONTENT=${CONTENT/"${INCLUDE_MARKER}"/${INCLUDE}}
+			fi
+		done
+
 		CONTENT=${CONTENT/"@POSTS_INDEX@"/${INDEX}}
 
 		REPLACEMENTS=("SITE_NAME" "SITE_URL" "TITLE" "PREVIEW_IMAGE" "DESCRIPTION")
